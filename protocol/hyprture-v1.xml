@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<protocol name="hyprture_v1">
+  <copyright>
+    Copyright 2026 aetherall. BSD 3-Clause, see LICENSE.
+  </copyright>
+
+  <description summary="live views of workspaces and windows, drawn by the compositor">
+    An aperture is a rectangle of a client's surface in which the compositor
+    draws a source (a workspace, a window or a monitor) live. The client never
+    receives the pixels: it says where the view goes, and the compositor
+    composites it right above the surface's own content, clipped to the
+    surface. Meant for shell clients (bars, overviews, switchers).
+  </description>
+
+  <interface name="hyprture_manager_v1" version="1">
+    <request name="destroy" type="destructor">
+      <description summary="destroy the manager">
+        Apertures created from it are not affected.
+      </description>
+    </request>
+
+    <request name="get_aperture">
+      <description summary="create an aperture on a surface">
+        Creates an aperture on `parent`, initially without a source and
+        without a destination, so it shows nothing. A surface can have any
+        number of apertures; they are drawn in creation order.
+      </description>
+      <arg name="id" type="new_id" interface="hyprture_aperture_v1"/>
+      <arg name="parent" type="object" interface="wl_surface"/>
+    </request>
+  </interface>
+
+  <interface name="hyprture_aperture_v1" version="1">
+    <description summary="a live view in a rectangle of a surface">
+      All its state is double-buffered: requests take effect on the parent
+      surface's next commit. If the parent surface is destroyed, the aperture
+      becomes inert; destroy it.
+    </description>
+
+    <enum name="error">
+      <entry name="invalid_destination" value="0" summary="negative width or height"/>
+    </enum>
+
+    <enum name="scene">
+      <entry name="windows" value="0" summary="the workspace's windows only"/>
+      <entry name="shell" value="1" summary="windows, wallpaper and layer surfaces"/>
+    </enum>
+
+    <request name="destroy" type="destructor"/>
+
+    <request name="set_source_workspace">
+      <description summary="show a workspace">
+        Shows the workspace with this id, as laid out on its monitor, whether
+        or not it is visible. Shows nothing while no such workspace exists.
+      </description>
+      <arg name="workspace" type="int"/>
+      <arg name="scene" type="uint" enum="scene"/>
+    </request>
+
+    <request name="set_source_window">
+      <description summary="show a window">
+        Shows the window with this address, in hexadecimal as the compositor
+        reports it ("0x5a1b…"), at its own size, with its decorations.
+      </description>
+      <arg name="address" type="string"/>
+    </request>
+
+    <request name="set_source_monitor">
+      <description summary="show what a monitor shows">
+        Shows the active workspace of the monitor with this name, with its
+        shell (wallpaper, layer surfaces).
+      </description>
+      <arg name="name" type="string"/>
+    </request>
+
+    <request name="unset_source">
+      <description summary="show nothing"/>
+    </request>
+
+    <request name="set_destination">
+      <description summary="where the view goes">
+        The rectangle, in surface-local coordinates, the source is scaled into.
+        A source whose aspect ratio differs is fitted inside it, centered.
+        Zero width or height hides the aperture.
+      </description>
+      <arg name="x" type="int"/>
+      <arg name="y" type="int"/>
+      <arg name="width" type="int"/>
+      <arg name="height" type="int"/>
+    </request>
+
+    <request name="set_opacity">
+      <arg name="opacity" type="fixed" summary="0 to 1"/>
+    </request>
+
+    <request name="set_radius">
+      <description summary="rounded corners">
+        Corner radius of the view, in surface-local units.
+      </description>
+      <arg name="radius" type="fixed"/>
+    </request>
+
+    <request name="set_live">
+      <description summary="live or still">
+        Live (the default): the view follows its source every frame. Still:
+        it is drawn once, then again only when its state changes.
+      </description>
+      <arg name="live" type="uint"/>
+    </request>
+
+    <event name="source">
+      <description summary="what the view shows">
+        Sent when the source resolves, or when its size changes: the size of
+        the source in logical units (its monitor's for a workspace), so the
+        client can lay the destination out with its aspect ratio. Zero when
+        the source doesn't exist.
+      </description>
+      <arg name="width" type="int"/>
+      <arg name="height" type="int"/>
+    </event>
+  </interface>
+</protocol>

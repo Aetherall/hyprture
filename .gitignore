@@ -1,0 +1,9 @@
+hyprture.so
+result
+result-*
+.build/
+.devenv/
+.direnv/
+.pi/
+devenv.local.nix
+devenv.local.yaml

@@ -1,0 +1,11 @@
+# The Hyprland the plugin builds against: the one dots runs (its flake.lock),
+# with the nixpkgs it was built with, so the plugin's version check passes and
+# the QML module shares quickshell's Qt. Bump both with dots.
+inputs:
+  nixpkgs:
+    url: github:nixos/nixpkgs/1c89083e451e891152365b799595cf7790a43325
+  hyprland:
+    url: github:hyprwm/Hyprland/4b9ac40d71ceeeb027cfa06992c9212e3c3077b6
+    inputs:
+      nixpkgs:
+        follows: nixpkgs
